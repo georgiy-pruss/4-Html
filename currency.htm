@@ -42,6 +42,11 @@ function ajax()
 }
 var k_focus = 0;
 function f(k) { k_focus = k; }
+function toend(k)
+{
+  var e = document.getElementById("v"+k), l = e.value.length;
+  e.setSelectionRange(l,l);
+}
 function recalc()
 {
   var k=k_focus;
@@ -56,7 +61,7 @@ function mod(k)
   var r = prompt("Current value: "+c[k]);
   if(r) { c[k] = +r; recalc(); }
 }
-function start() { f(0); recalc(); ajax(); }
+function start() { f(0); toend(0); recalc(); ajax(); }
 </script>
 </head>
 <body onload="start()">
