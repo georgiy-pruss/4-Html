@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Currency</title>
+<style>
+#kbd tr td {width:30px;}
+input {width:7em;text-align:right;}
+</style>
+<script>
+var n="USDEUR=X,USDGBP=X,USDUAH=X,USDRUB=X,USDRON=X,USDJPY=X"; // without "USDUSD"!
+var c=[1,0.91563,0.68869,25.5,74.85,4.14,117.24]; // 1 usd = ...
+var p=[2,2,2,0,0,1,0]; // precision
+function parsejson(data)
+{
+  if( window.JSON && window.JSON.parse ) return window.JSON.parse( data );
+  return (new Function("return " + data))();
+}
+function update(s)
+{
+  var res = parsejson(s);
+  if( !res || !res.query ) return;
+  var cnt = res.query.count ? res.query.count : 0;
+  if( res.query.results && res.query.results.quote )
+    for(var i=0;i<cnt;++i)
+      c[i+1] = +res.query.results.quote[i].LastTradePriceOnly;
+  recalc();
+}
+function ajax()
+{
+  var cond='symbol="'+n.split(",").join('" or symbol="')+'"';
+  var sql=escape('select LastTradePriceOnly from yahoo.finance.quotes where '+cond);
+  var q='http://query.yahooapis.com/v1/public/yql?q='+sql+
+    '&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=';
+  var xmlhttp = new XMLHttpRequest();
+  var ready = function()
+  {
+    if( xmlhttp.readyState == XMLHttpRequest.DONE )
+      if(xmlhttp.status == 200) update(xmlhttp.responseText);
+      else console.log("xmlhttp.status:"+xmlhttp.status);
+  }
+  xmlhttp.open("GET",q,true);
+  xmlhttp.onreadystatechange = ready;
+  xmlhttp.send();
+}
+var k_focus = 0;
+function f(k) { k_focus = k; }
+function recalc()
+{
+  var k=k_focus;
+  var n=c.length;
+  var v=document.getElementById("v"+k).value;
+  for( var i=0; i<n; ++i )
+    if( i!=k )
+      document.getElementById("v"+i).value = (v * c[i]/c[k]).toFixed(p[i]);
+}
+function start() { f(0); recalc(); ajax(); }
+</script>
+</head>
+<body onload="start()">
+<form>
+<script>
+function w(k) { document.write('<td><input type="text" id="v'+k+'" name="v'+k+
+  '" value="10'+k+'" onfocus="f('+k+')"'+(k==0?'autofocus=true':'')+'/></td>'); }
+</script>
+<table onkeyup="recalc()">
+  <tr><td>Dollar</td><script>w(0);</script><td>USD</td></tr>
+  <tr><td>Euro  </td><script>w(1);</script><td>EUR</td></tr>
+  <tr><td>Pound </td><script>w(2);</script><td>GBP</td></tr>
+  <tr><td>Hryvna</td><script>w(3);</script><td>UAH</td></tr>
+  <tr><td>Ruble </td><script>w(4);</script><td>RUR</td></tr>
+  <tr><td>Leu   </td><script>w(5);</script><td>RON</td></tr>
+  <tr><td>Yen   </td><script>w(6);</script><td>JPY</td></tr>
+</table>
+</form>
+<script>document.write('<a href="http://finance.yahoo.com/quotes/'+n+'">Yahoo rates</a>');</script> |
+<a href="http://finance.i.ua/market/kiev/usd/?type=1&sort=ratio&desc=1">Finance.i.ua</a>
+</body>
+</html>
