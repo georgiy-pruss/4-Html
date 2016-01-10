@@ -44,7 +44,7 @@ var k_focus = 0;
 function f(k) { k_focus = k; }
 function toend(k)
 {
-  var e = document.getElementById("v"+k), l = e.value.length;
+  var e = document.getElementById("v"+k), l = 2*e.value.length; // *2 for Opera
   e.setSelectionRange(l,l);
 }
 function recalc()
