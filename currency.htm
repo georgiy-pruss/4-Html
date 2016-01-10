@@ -3,11 +3,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Currency</title>
-<style>input{width:7em;text-align:right;}</style>
-<script>
-var n="USDEUR=X,USDGBP=X,USDUAH=X,USDRUB=X,USDRON=X,USDJPY=X"; // without "USDUSD"!
-var c=[1,0.91563,0.68869,25.5,74.85,4.14,117.24]; // 1 usd = ...
-var p=[2,2,2,0,0,1,0]; // precision
+<style>input{width:5em;text-align:right;}</style>
+<script> // January 10, 2016 - 20:51:07
+var n="USDGBP=X,USDEUR=X,USDRON=X,USDUAH=X,USDRUB=X,USDCAD=X,USDCNY=X,USDJPY=X"; // without "USDUSD"!
+var c=[1,0.68869,0.91563,4.14,25.5,74.85,1.4172,6.5659,117.24]; // 1 usd = ...
+var p=[2,2,2,1,1,0,2,1,0]; // precision
 function parsejson(data)
 {
   if( window.JSON && window.JSON.parse ) return window.JSON.parse( data );
@@ -51,26 +51,38 @@ function recalc()
     if( i!=k )
       document.getElementById("v"+i).value = (v * c[i]/c[k]).toFixed(p[i]);
 }
+function mod(k)
+{
+  var r = prompt("Current value: "+c[k]);
+  if(r) { c[k] = +r; recalc(); }
+}
 function start() { f(0); recalc(); ajax(); }
 </script>
 </head>
 <body onload="start()">
 <form>
 <script>
-function w(k) { document.write('<td><input type="text" id="v'+k+'" name="v'+k+
-  '" value="10'+k+'" onfocus="f('+k+')"'+(k==0?'autofocus=true':'')+'/></td>'); }
-</script>
+function w(k,t,c) { document.write('<td><input type="text" id="v'+k+'" name="v'+k+
+  '" value="10'+k+'" onfocus="f('+k+')"'+(k==0?'autofocus=true':'')+'/></td>'+
+  '<td><img src="http://www.finlandforum.org/pics/flags/'+c+'.png"></td><td>'+t+'</td>'); }
+</script> <!-- https://upload.wikimedia.org/wikipedia/en/thumb/c/cf/Flag_of_Canada.svg/23px-Flag_of_Canada.svg.png etc -->
 <table onkeyup="recalc()">
-  <tr><td>Dollar</td><script>w(0);</script><td>USD</td></tr>
-  <tr><td>Euro  </td><script>w(1);</script><td>EUR</td></tr>
-  <tr><td>Pound </td><script>w(2);</script><td>GBP</td></tr>
-  <tr><td>Hryvna</td><script>w(3);</script><td>UAH</td></tr>
-  <tr><td>Ruble </td><script>w(4);</script><td>RUR</td></tr>
-  <tr><td>Leu   </td><script>w(5);</script><td>RON</td></tr>
-  <tr><td>Yen   </td><script>w(6);</script><td>JPY</td></tr>
+  <tr><td onclick="mod(0)">Dollar $</td><script>w(0,'USD','us');</script></tr>
+  <tr><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','uk');</script></tr>
+  <tr><td onclick="mod(2)">Euro €  </td><script>w(2,'EUR','eu');</script></tr>
+  <tr><td onclick="mod(3)">Leu     </td><script>w(3,'RON','ro');</script></tr>
+  <tr><td onclick="mod(4)">Hryvna ₴</td><script>w(4,'UAH','ua');</script></tr>
+  <tr><td onclick="mod(5)">Ruble   </td><script>w(5,'RUB','ru');</script></tr>
+  <tr><td onclick="mod(6)">Can.Dlr </td><script>w(6,'CAD','ca');</script></tr>
+  <tr><td onclick="mod(7)">Yuan 元 </td><script>w(7,'CNY','cn');</script></tr>
+  <tr><td onclick="mod(8)">Yen ¥   </td><script>w(8,'JPY','jp');</script></tr>
 </table>
 </form>
+<p>Click on currency on left<br>to manually change rate.</p>
+<p>Refresh to reset/reload.</p>
+<p>
 <script>document.write('<a href="http://finance.yahoo.com/quotes/'+n+'">Yahoo rates</a>');</script>
 | <a href="http://finance.i.ua/market/kiev/usd/?type=1&sort=ratio&desc=1">Finance.i.ua</a>
+</p>
 </body>
 </html>
