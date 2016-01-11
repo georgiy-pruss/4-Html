@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head> <!-- (C) Georgiy Pruss - http://mas.orgfree.com/ -->
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Currency</title>
-<style>input{width:5em;text-align:right;}</style>
+<style>input{width:5em;text-align:right;}img{border:1px solid #aaa;}</style>
 <script> // January 10, 2016 - 20:51:07
 var n="USDGBP=X,USDEUR=X,USDRON=X,USDUAH=X,USDRUB=X,USDCAD=X,USDCNY=X,USDJPY=X"; // without "USDUSD"!
 var c=[1,0.68869,0.91563,4.14,25.5,74.85,1.4172,6.5659,117.24]; // 1 usd = ...
@@ -44,7 +44,7 @@ var k_focus = 0;
 function f(k) { k_focus = k; }
 function toend(k)
 {
-  var e = document.getElementById("v"+k), l = 2*e.value.length; // *2 for Opera
+  var e = document.getElementById("v"+k), l = 2*e.value.length;
   e.setSelectionRange(l,l);
 }
 function recalc()
@@ -69,11 +69,11 @@ function start() { f(0); toend(0); recalc(); ajax(); }
 <script>
 function w(k,t,c) { document.write('<td><input type="text" id="v'+k+'" name="v'+k+
   '" value="10'+k+'" onfocus="f('+k+')"'+(k==0?'autofocus=true':'')+'/></td>'+
-  '<td><img src="http://www.finlandforum.org/pics/flags/'+c+'.png"></td><td>'+t+'</td>'); }
-</script> <!-- https://upload.wikimedia.org/wikipedia/en/thumb/c/cf/Flag_of_Canada.svg/23px-Flag_of_Canada.svg.png etc -->
+  '<td><img src="images/'+c+'.png"></td><td>'+t+'</td>'); }
+</script>
 <table onkeyup="recalc()">
   <tr><td onclick="mod(0)">Dollar $</td><script>w(0,'USD','us');</script></tr>
-  <tr><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','uk');</script></tr>
+  <tr><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','gb');</script></tr>
   <tr><td onclick="mod(2)">Euro €  </td><script>w(2,'EUR','eu');</script></tr>
   <tr><td onclick="mod(3)">Leu     </td><script>w(3,'RON','ro');</script></tr>
   <tr><td onclick="mod(4)">Hryvna ₴</td><script>w(4,'UAH','ua');</script></tr>
