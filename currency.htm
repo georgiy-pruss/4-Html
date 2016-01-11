@@ -56,12 +56,19 @@ function recalc()
     if( i!=k )
       document.getElementById("v"+i).value = (v * c[i]/c[k]).toFixed(p[i]);
 }
+function rettl()
+{
+  for( var i=1; i<c.length; ++i )
+    document.getElementById("r"+i).title = "1 USD = "+c[i].toFixed(5);
+}
 function mod(k)
 {
+  if(k==0) { alert("It's dollar! Duh! A dollar's a dollar!"); return; }
   var r = prompt("Current value: "+c[k]);
   if(r) { c[k] = +r; recalc(); }
+  rettl();
 }
-function start() { f(0); toend(0); recalc(); ajax(); }
+function start() { f(0); toend(0); recalc(); ajax(); rettl(); }
 </script>
 </head>
 <body onload="start()">
@@ -72,15 +79,15 @@ function w(k,t,c) { document.write('<td><input type="text" id="v'+k+'" name="v'+
   '<td><img src="images/'+c+'.png"></td><td>'+t+'</td>'); }
 </script>
 <table onkeyup="recalc()">
-  <tr><td onclick="mod(0)">Dollar $</td><script>w(0,'USD','us');</script></tr>
-  <tr><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','gb');</script></tr>
-  <tr><td onclick="mod(2)">Euro €  </td><script>w(2,'EUR','eu');</script></tr>
-  <tr><td onclick="mod(3)">Leu     </td><script>w(3,'RON','ro');</script></tr>
-  <tr><td onclick="mod(4)">Hryvna ₴</td><script>w(4,'UAH','ua');</script></tr>
-  <tr><td onclick="mod(5)">Ruble   </td><script>w(5,'RUB','ru');</script></tr>
-  <tr><td onclick="mod(6)">Can.Dlr </td><script>w(6,'CAD','ca');</script></tr>
-  <tr><td onclick="mod(7)">Yuan 元 </td><script>w(7,'CNY','cn');</script></tr>
-  <tr><td onclick="mod(8)">Yen ¥   </td><script>w(8,'JPY','jp');</script></tr>
+  <tr id="r0"><td onclick="mod(0)">Dollar $</td><script>w(0,'USD','us');</script></tr>
+  <tr id="r1"><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','gb');</script></tr>
+  <tr id="r2"><td onclick="mod(2)">Euro €  </td><script>w(2,'EUR','eu');</script></tr>
+  <tr id="r3"><td onclick="mod(3)">Leu     </td><script>w(3,'RON','ro');</script></tr>
+  <tr id="r4"><td onclick="mod(4)">Hryvna ₴</td><script>w(4,'UAH','ua');</script></tr>
+  <tr id="r5"><td onclick="mod(5)">Ruble   </td><script>w(5,'RUB','ru');</script></tr>
+  <tr id="r6"><td onclick="mod(6)">Can.Dlr </td><script>w(6,'CAD','ca');</script></tr>
+  <tr id="r7"><td onclick="mod(7)">Yuan 元 </td><script>w(7,'CNY','cn');</script></tr>
+  <tr id="r8"><td onclick="mod(8)">Yen ¥   </td><script>w(8,'JPY','jp');</script></tr>
 </table>
 </form>
 <p>Click on currency on left<br>to manually change rate.</p>
