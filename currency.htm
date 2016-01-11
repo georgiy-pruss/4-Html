@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
-<head> <!-- (C) Georgiy Pruss - http://mas.orgfree.com/ -->
+<html> <!-- (C) Georgiy Pruss - http://mas.orgfree.com/ -->
+<head> <!-- don't modify, don't use html/js code, don't copy it w/o permission -->
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Currency</title>
 <style>input{width:5em;text-align:right;}img{border:1px solid #aaa;}</style>
 <script> // January 10, 2016 - 20:51:07
@@ -74,20 +75,20 @@ function start() { f(0); toend(0); recalc(); rettl(); ajax(); }
 <body onload="start()">
 <form>
 <script>
-function w(k,t,c) { document.write('<td><input type="text" id="v'+k+'" name="v'+k+
-  '" value="10'+k+'" onfocus="f('+k+')"'+(k==0?'autofocus=true':'')+'/></td>'+
-  '<td><img src="images/'+c+'.png"></td><td>'+t+'</td>'); }
+function w(k,l,t,c) { document.write('<tr id="r'+k+'"><td onclick="mod('+k+')">'+l+'</td>'+
+  '<td><input type="text" id="v'+k+'" name="v'+k+'" value="100" onfocus="f('+k+')"'+
+  (k==0?' autofocus=true':'')+'/></td><td><img src="images/'+c+'.png"></td><td>'+t+'</td></tr>'); }
 </script>
 <table onkeyup="recalc()">
-  <tr id="r0"><td onclick="mod(0)">Dollar $</td><script>w(0,'USD','us');</script></tr>
-  <tr id="r1"><td onclick="mod(1)">Pound £ </td><script>w(1,'GBP','gb');</script></tr>
-  <tr id="r2"><td onclick="mod(2)">Euro €  </td><script>w(2,'EUR','eu');</script></tr>
-  <tr id="r3"><td onclick="mod(3)">Leu     </td><script>w(3,'RON','ro');</script></tr>
-  <tr id="r4"><td onclick="mod(4)">Hryvna ₴</td><script>w(4,'UAH','ua');</script></tr>
-  <tr id="r5"><td onclick="mod(5)">Ruble   </td><script>w(5,'RUB','ru');</script></tr>
-  <tr id="r6"><td onclick="mod(6)">Can.Dlr </td><script>w(6,'CAD','ca');</script></tr>
-  <tr id="r7"><td onclick="mod(7)">Yuan 元 </td><script>w(7,'CNY','cn');</script></tr>
-  <tr id="r8"><td onclick="mod(8)">Yen ¥   </td><script>w(8,'JPY','jp');</script></tr>
+  <script>w(0,'Dollar $','USD','us');</script>
+  <script>w(1,'Pound £ ','GBP','gb');</script>
+  <script>w(2,'Euro €  ','EUR','eu');</script>
+  <script>w(3,'Leu     ','RON','ro');</script>
+  <script>w(4,'Hryvna ₴','UAH','ua');</script>
+  <script>w(5,'Ruble   ','RUB','ru');</script>
+  <script>w(6,'Can.Dlr ','CAD','ca');</script>
+  <script>w(7,'Yuan 元 ','CNY','cn');</script>
+  <script>w(8,'Yen ¥   ','JPY','jp');</script>
 </table>
 </form>
 <p>Click on currency on left<br>to manually change rate.</p>
