@@ -22,6 +22,7 @@ function update(s)
     for(var i=0;i<cnt;++i)
       c[i+1] = +res.query.results.quote[i].LastTradePriceOnly;
   recalc();
+  rettl();
 }
 function ajax()
 {
@@ -65,10 +66,9 @@ function mod(k)
 {
   if(k==0) { alert("It's dollar! Duh! A dollar's a dollar!"); return; }
   var r = prompt("Current value: "+c[k]);
-  if(r) { c[k] = +r; recalc(); }
-  rettl();
+  if(r) { c[k] = +r; recalc(); rettl(); }
 }
-function start() { f(0); toend(0); recalc(); ajax(); rettl(); }
+function start() { f(0); toend(0); recalc(); rettl(); ajax(); }
 </script>
 </head>
 <body onload="start()">
