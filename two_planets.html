@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Planets</title>
+  <script>
+    const periods =
+    {
+      "Mercury (0.39)":   87.97,
+      "Venus (0.72)":    224.70,
+      "Earth (1.00)":    365.25,
+      "Mars (1.52)":     686.98,
+      "Jupiter (5.2)":  4332.59,
+      "Saturn (9.6)":  10759.22,
+      "Uranus (19)":   30688.50,
+      "Neptune (30)":  60182.00
+    };
+    function updatePeriod(selectId,inputId)
+    {
+      const planet = document.getElementById(selectId).value;
+      const input = document.getElementById(inputId);
+      if(planet === "Other")
+      {
+        input.value = "";
+        input.placeholder = "введите число";
+      }
+      else
+      {
+        input.value = periods[planet];
+      }
+    }
+  </script>
+</head>
+<body>
+<form>
+  <label>Планета 1:</label>
+  <select id="planet1" onchange="updatePeriod('planet1','days1')">
+    <option>Mercury (0.39)</option>
+    <option selected>Venus (0.72)</option>
+    <option>Earth (1.00)</option>
+    <option>Mars (1.52)</option>
+    <option>Jupiter (5.2)</option>
+    <option>Saturn (9.6)</option>
+    <option>Uranus (19)</option>
+    <option>Neptune (30)</option>
+    <option>Other</option>
+  </select>
+  <input type="number" id="days1" placeholder="дней" step="0.01" value="224.70"
+  style="width:80px;"> дней
+  <br>
+  <label>Планета 2:</label>
+  <select id="planet2" onchange="updatePeriod('planet2','days2')">
+    <option>Mercury (0.39)</option>
+    <option>Venus (0.72)</option>
+    <option selected>Earth (1.00)</option>
+    <option>Mars (1.52)</option>
+    <option>Jupiter (5.2)</option>
+    <option>Saturn (9.6)</option>
+    <option>Uranus (19)</option>
+    <option>Neptune (30)</option>
+    <option>Other</option>
+  </select>
+  <input type="number" id="days2" placeholder="дней" step="0.01" value="365.25"
+  style="width:80px;"> дней
+  <br>
+  <label>Соотн.радиусов:</label>
+  <input type="number" id="rate" min="1.1" max="50" value="1.39">
+  <br>
+  <label>Интервал:</label>
+  <input type="number" id="interval" placeholder="дней" step="1" value="7" style="width:80px;"> дней
+  <br>
+  <label>Отрисовка:</label>
+  <input type="number" id="timestep" placeholder="мс" step="10" value="50" style="width:80px;"> мс
+  <button type="button" id="startBtn" style="width:100px;">Start</button>
+  <button type="button" id="pauseBtn" style="width:100px;">Pause</button>
+</form>
+<canvas id="myCanvas" width="800" height="800"></canvas>
+<div id="info"></div>
+<script>
+  const TAU = 2 * Math.PI;
+  const startBtn = document.getElementById("startBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  pauseBtn.disabled = true;
+
+  const canvas = document.getElementById("myCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let angle1 = Math.PI / 2;
+  let angle2 = Math.PI / 2;
+  let daysPassed = 0;
+  let rate = parseFloat(document.getElementById("rate").value);
+  let time_step = Math.floor(parseFloat(document.getElementById("timestep").value)); // ms
+  let timer = null;
+  let cx = canvas.width / 2;
+  let cy = canvas.height / 2;
+  let r2 = Math.floor(canvas.height/2) - 20; // r2 > r1
+  let r1 = Math.floor(r2/rate);
+
+  function draw_sun()
+  {
+    // the sun
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = "yellow";
+    ctx.fill();
+    r2 = Math.floor(canvas.height/2) - 20; // r2 > r1
+    r1 = Math.floor(r2/rate);
+    // orbits
+    ctx.beginPath();
+    ctx.arc(cx,cy,r1,0,TAU);
+    ctx.strokeStyle = "rgba(200,200,200,0.2)";
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r2,0,TAU);
+    ctx.strokeStyle = "rgba(200,200,200,0.2)";
+    ctx.stroke();
+  }
+
+  function drawPlanets()
+  {
+    // planets coords
+    const x1 = cx + r1 * Math.cos(angle1);
+    const y1 = cy - r1 * Math.sin(angle1);
+    const x2 = cx + r2 * Math.cos(angle2);
+    const y2 = cy - r2 * Math.sin(angle2);
+    // draw planets
+    ctx.beginPath();
+    ctx.arc(x1,y1,3,0,TAU);
+    ctx.fillStyle = "blue";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x2,y2,3,0,TAU);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    // connect planets with line
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
+    ctx.stroke();
+  }
+
+  function step()
+  {
+    const interval = parseFloat(document.getElementById("interval").value) || 1;
+    const days1 = parseFloat(document.getElementById("days1").value);
+    const days2 = parseFloat(document.getElementById("days2").value);
+    // one frame angle
+    angle1 -= (TAU * interval) / days1;
+    angle2 -= (TAU * interval) / days2;
+    daysPassed += interval;
+    drawPlanets();
+    let t = daysPassed + " дней";
+    if(daysPassed>365)
+      t += " (" + (daysPassed/365.25).toFixed(1) + " лет)";
+    document.getElementById("info").innerText = t;
+  }
+
+  startBtn.onclick = function()
+  {
+    angle1 = Math.PI / 2;
+    angle2 = Math.PI / 2;
+    daysPassed = 0;
+    rate = parseFloat(document.getElementById("rate").value);
+    time_step = Math.floor(parseFloat(document.getElementById("timestep").value)); // ms
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    draw_sun();
+    drawPlanets();
+    if(timer) clearInterval(timer);
+    timer = setInterval(step,time_step);
+    startBtn.textContent = "Restart";
+    startBtn.style.width = "100px";
+    pauseBtn.textContent = "Stop";
+    pauseBtn.style.width = "100px";
+    pauseBtn.disabled = false;
+  };
+
+  pauseBtn.onclick = function()
+  {
+    if(timer)
+    {
+      clearInterval(timer);
+      timer = null;
+      pauseBtn.textContent = "Resume";
+    }
+    else
+    {
+      timer = setInterval(step,time_step);
+      pauseBtn.textContent = "Stop";
+    }
+    pauseBtn.style.width = "100px";
+  };
+  draw_sun();
+  drawPlanets();
+</script>
+</body>
+</html>

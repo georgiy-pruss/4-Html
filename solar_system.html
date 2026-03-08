@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Solar system</title>
+</head>
+<body>
+  <div>
+    <button id="todayBtn">Сегодня</button>
+    &nbsp;&nbsp;
+    <label>Год: <input type="number" id="year" value="2026" min="1900" max="2300"></label>
+    <label>Месяц: <input type="number" id="month" value="1" min="1" max="12"></label>
+    <label>День: <input type="text" id="day" value="1" style="width:2em;"></label>
+    &nbsp;&nbsp;
+    <button id="dnBtn">▼</button>
+    <button id="upBtn">▲</button>
+    <input type="number" id="ndays" value="1" min="1" max="1000" style="width:4em;">
+    &nbsp;&nbsp;
+    <button id="runBtn">Поехали</button>
+    <input type="checkbox" id="doconnect">
+    &nbsp;&nbsp;
+    Зум:
+    <label><input type="radio" name="zoom" value="0" checked>≡</label>
+    <label><input type="radio" name="zoom" value="1">♆</label>
+    <label><input type="radio" name="zoom" value="2">♅</label>
+    <label><input type="radio" name="zoom" value="3">♄</label>
+    <label><input type="radio" name="zoom" value="4">♃</label>
+  </div>
+
+  <canvas id="canvas" width="850" height="850"></canvas>
+
+  <script>
+    const TAU = 2*Math.PI;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let running = false;
+    let timer = null;
+    let zoom = 0;
+
+    // Юлианская дата
+    function julianDate(year,month,day)
+    {
+      if (month <= 2) { --year; month += 12; }
+      const A = Math.floor(year/100);
+      const B = 2 - A + Math.floor(A/4);
+      return Math.floor(365.25*(year+4716)) +
+             Math.floor(30.6001*(month+1)) +
+             day + B - 1524.5;
+    }
+
+    const planetsz =  // for mean longitude J2000
+    [
+      {name:"☿", lon:252.25084, i:0, color:"gray"},
+      {name:"♀", lon:181.97973, i:1, color:"orange"},
+      {name:"⊕", lon:100.46435, i:2, color:"blue"},
+      {name:"♂", lon:355.45332, i:3, color:"red"},
+      {name:"♃", lon:34.40438,  i:4, color:"brown"},
+      {name:"♄", lon:49.94432,  i:5, color:"gold"},
+      {name:"♅", lon:313.23218, i:6, color:"lightblue"},
+      {name:"♆", lon:304.88003, i:7, color:"darkblue"}
+    ];
+
+    const planets =
+    [
+      {name:"☿", i:0, period:87.969,   color:"gray", a:0.38709927, e:0.20563593, L:252.25084, wbar:77.457796 },
+      {name:"♀", i:1, period:224.701,  color:"orange", a:0.72333566, e:0.00677672, L:181.97973, wbar:131.602467 },
+      {name:"⊕", i:2, period:365.256,  color:"blue", a:1.00000261, e:0.01671123, L:100.46435, wbar:102.937681 },
+      {name:"♂", i:3, period:686.980,  color:"red", a:1.52371034, e:0.09339410, L:355.45332, wbar:336.04084 },
+      {name:"♃", i:4, period:4332.589, color:"brown", a:5.20288700, e:0.04838624, L:34.40438, wbar:14.75385 },
+      {name:"♄", i:5, period:10759.22, color:"gold", a:9.53667594, e:0.05386179, L:49.94432, wbar:92.43194 },
+      {name:"♅", i:6, period:30688.5,  color:"lightblue", a:19.18916464, e:0.04725744, L:313.23218, wbar:170.96424 },
+      {name:"♆", i:7, period:60182,    color:"darkblue", a:30.06992276, e:0.00859048, L:304.88003, wbar:44.97135 }
+    ];
+
+    const radii =
+    [ [50,100,150,200,250,300,350,400],
+      [ 5, 10, 13, 20, 69,127,255,400],
+      [ 8, 15, 21, 32,108,200,400,627],
+      [16, 30, 42, 64,218,400,803,1257],
+      [30, 55, 77,117,400,737,1477,2313],
+      // 0.39 0.72 1.00 1.52 5.20 9.58 19.20 30.05
+    ]
+
+    const moon = { name: "☽", lon: 218.316, period: 27.321, radius: 15, color: "silver" };
+    const J2000 = Date.UTC(2000,0,1,12);
+
+    function kepler(M,e)
+    {
+      let E = M;
+      for(let i=0;i<6;++i)
+          E = E - (E - e*Math.sin(E) - M) / (1 - e*Math.cos(E));
+      return E;
+    }
+
+    function planetXY(p, d, scale)
+    {
+      const n = 360 / p.period;
+
+      let Mdeg = (p.L - p.wbar + n*d) % 360;
+      if (Mdeg < 0) Mdeg += 360;
+
+      const M = Mdeg * Math.PI/180;
+
+      const E = kepler(M, p.e);
+
+      const xv = Math.cos(E) - p.e;
+      const yv = Math.sqrt(1 - p.e*p.e) * Math.sin(E);
+
+      const v = Math.atan2(yv, xv);
+      const r = p.a * (1 - p.e*Math.cos(E));
+
+      const w = p.wbar * Math.PI/180;
+      const x = r * Math.cos(v+w);
+      const y = r * Math.sin(v+w);
+      //console.log(p.name,d,scale, x,y);
+
+      return { x: x * scale, y: -y * scale };   // минус чтобы было CCW на canvas
+    }
+
+    const h_year = document.getElementById('year');
+    const h_month = document.getElementById('month');
+    const h_day = document.getElementById('day');
+    const h_ndays = document.getElementById("ndays");
+    const h_connect = document.getElementById("doconnect");
+
+    function drawOrbit(cx,cy,p,scale)
+    {
+      const a = p.a * scale;
+      const b = p.a * Math.sqrt(1 - p.e*p.e) * scale;
+
+      const c = p.a * p.e * scale;
+
+      const angle = p.wbar * Math.PI/180;
+
+      const ox = cx - c * Math.cos(angle);
+      const oy = cy + c * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.ellipse(ox, oy, a, b, angle, 0, TAU);
+      ctx.strokeStyle = "#ccc";
+      ctx.stroke();
+    }
+
+    function drawSystem()
+    {
+      const year = parseInt(h_year.value,10);
+      const month = parseInt(h_month.value,10);
+      const day = parseInt(h_day.value,10);
+
+      const jd = Date.UTC(year,month-1,day,0);
+      const d = (jd - J2000) / 86400000;
+
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      const cx = canvas.width/2, cy = canvas.height/2;
+      let earthX = 0, earthY = 0; // coords of Earth for Moon
+
+      // Sun
+      ctx.beginPath();
+      ctx.arc(cx,cy,7,0,TAU);
+      ctx.fillStyle = "yellow";
+      ctx.fill();
+      ctx.fillStyle = "black";
+      ctx.fillText("☉",cx+8,cy);
+
+      const selected = document.querySelector('input[name="zoom"]:checked');
+      if(selected) zoom = selected.value;
+      else zoom = 0;
+
+      let coords = {};
+      planets.forEach( p =>
+      {
+        const radius = radii[zoom][p.i];
+        const pos = planetXY(p,d,radius/p.a);
+        const x = cx + pos.x;
+        const y = cy + pos.y;
+        if( p.name === "⊕" ) { earthX = x; earthY = y; }
+        coords[p.name] = [x,y];
+
+        drawOrbit(cx,cy,p,radius/p.a);
+
+        // planet
+        ctx.beginPath();
+        ctx.arc(x,y,3,0,TAU);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.fillText(p.name, x+6, y);
+      });
+      if(h_connect.checked)
+        for( let name in coords )
+        {
+          let [x,y] = coords[name];
+          //console.log(name,x,y);
+          if( name !== "⊕" )
+          {
+            ctx.beginPath();
+            ctx.moveTo(x,y);
+            ctx.lineTo(earthX,earthY);
+            ctx.strokeStyle = "rgba(100,100,100,0.5)";
+            ctx.stroke();
+          }
+        }
+
+      // Moon around Earth
+      const moonAngleDeg = (moon.lon + 360*(d/moon.period)) % 360;
+      const moonAngle = -moonAngleDeg * Math.PI/180;
+      const mx = earthX + moon.radius * Math.cos(moonAngle);
+      const my = earthY + moon.radius * Math.sin(moonAngle);
+
+      ctx.beginPath();
+      ctx.arc(mx,my,2,0,TAU);
+      ctx.fillStyle = moon.color;
+      ctx.fill();
+      ctx.fillStyle = "black";
+      ctx.fillText(moon.name,mx+6,my);
+    }
+
+    document.querySelectorAll('input').forEach(input =>
+    {
+      input.addEventListener('input', drawSystem);
+    });
+
+    today = () =>
+    {
+      const now = new Date();
+      h_year.value = now.getFullYear();
+      h_month.value = now.getMonth() + 1; // months start at 0
+      h_day.value = now.getDate();
+      drawSystem();
+    }
+
+    document.getElementById("todayBtn").addEventListener("click", today);
+
+    document.getElementById("runBtn").addEventListener("click", () =>
+    {
+      if(!running)
+      {
+        running = true;
+        document.getElementById("runBtn").textContent = "Приехали";
+        timer = setInterval(() =>
+        {
+          let year = parseInt(h_year.value,10);
+          let month = parseInt(h_month.value,10);
+          let day = parseInt(h_day.value,10);
+          let ndays = parseInt(h_ndays.value,10)||1;
+
+          const date = new Date(year,month-1,day);
+          date.setDate(date.getDate() + ndays);
+
+          h_year.value = date.getFullYear();
+          h_month.value = date.getMonth()+1;
+          h_day.value = date.getDate();
+
+          drawSystem();
+        }, 50);
+      }
+      else
+      {
+        running = false;
+        document.getElementById("runBtn").textContent = "Поехали";
+        clearInterval(timer);
+      }
+    });
+
+    document.getElementById("upBtn").addEventListener("click", () =>
+    {
+      let year = parseInt(h_year.value,10);
+      let month = parseInt(h_month.value,10);
+      let day = parseInt(h_day.value,10);
+      let ndays = parseInt(h_ndays.value,10);
+
+      const date = new Date(year,month-1,day);
+      date.setDate(date.getDate() + ndays);
+
+      h_year.value = date.getFullYear();
+      h_month.value = date.getMonth()+1;
+      h_day.value = date.getDate();
+
+      drawSystem();
+    });
+
+    document.getElementById("dnBtn").addEventListener("click", () =>
+    {
+      let year = parseInt(h_year.value,10);
+      let month = parseInt(h_month.value,10);
+      let day = parseInt(h_day.value,10);
+      let ndays = parseInt(document.getElementById("ndays").value,10);
+
+      const date = new Date(year,month-1,day);
+      date.setDate(date.getDate() - ndays);
+
+      h_year.value = date.getFullYear();
+      h_month.value = date.getMonth()+1;
+      h_day.value = date.getDate();
+
+      drawSystem();
+    });
+
+    today();
+    drawSystem();
+
+  </script>
+</body>
+</html>
+<!--
+  https://www.theplanetstoday.com/index.html
+  https://heavens-above.com/planets.aspx?lat=0&lng=0&loc=Unspecified&alt=0&tz=UCT
+
+  25 Feb 2012 Mercury–Venus–Jupiter ~3°
+  20 Apr 2026 Mercury–Mars–Saturn ~1.7°
+  Aug 2027  Mercury – Venus – Jupiter ~8°
+  Jan 2028  Mercury – Venus – Saturn  ~7°
+  Oct 2028  Mercury – Mars – Jupiter  ~9°
+  Feb 2030  Mercury – Venus – Mars  ~6°
+  May 2031  Mercury – Venus – Jupiter ~8°
+  Sep 2033  Mercury – Mars – Saturn ~7°
+  Dec 2034  Mercury – Venus – Jupiter ~9°
+
+  4–6 февраля 1962 Mars Jupiter Saturn ≈9° рядом Venus, Mercury, Sun, Moon (но они нам не важны)
+  8–12 апреля 2022 Mars – Saturn – Neptune 4°, 3–4°, 8–9°
+  27–31 июля 2036 Mars – Uranus – Jupiter Марс проходит между ними группа ≈7–9°
+  сентябрь 2040 Jupiter – Saturn – Neptune крупные планеты оказываются в одном секторе ≈9–10°
+  24–26 февраля 2080 Jupiter – Saturn – Uranus расстояние ~8–9°
+-->
